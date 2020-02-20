@@ -1,0 +1,102 @@
+
+
+
+{% extends  'base.html' %}
+{% load crispy_forms_tags %}
+{% block main %}
+{% if user.is_authenticated %}
+<br><br>
+	<div class="form-row">
+		<div class="col-6"><b><h4>Source Connection String</h4></b></div>
+      	<div class="col-6"><b><h4>Destination Connection String</h4></b></div>
+	</div><hr>
+	<div class="form-row">
+		<div class="col-6"><b>Database Details</b></div>
+      	<div class="col-6"><b>Database Details</b></div>
+	</div>
+<br>
+
+<form action="sync/" method="POST">
+  {% csrf_token %}
+	 <div class="form-row">
+    <div class="col-md-6">
+      <!-- <label for="{{ form.s_hostname.id_for_label }}">Hostname</label> -->
+      <!-- <input type="text" class="form-control" id="inputEmail4" placeholder="Hostname" required="required"></input> -->
+      {{ form.s_hostname|as_crispy_field }}
+    </div>
+    <div class="col-md-6">
+      <!-- <label for="{{ form.d_hostname.id_for_label }}">Hostname</label>
+      <input type="text" class="form-control" id="inputPassword4" placeholder="Hostname" required="required"> -->
+      {{ form.d_hostname|as_crispy_field }}
+    </div>
+  </div>
+   <div class="form-row">
+    <div class="col-md-6">
+      <!-- <label for="{{ form.d_hostname.id_for_label }}">Hostname</label>
+      <input type="text" class="form-control" id="inputEmail4" placeholder="Database Name" required="required"> -->
+      {{ form.s_port|as_crispy_field }}
+    </div>
+    <div class="col-md-6">
+      <!--label for="lname">Port</label-->
+      <!-- <input type="text" class="form-control" id="inputPassword4" placeholder="Database Name" required="required"> -->
+      {{ form.d_port|as_crispy_field }}
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="col-md-6">
+      <!--label for="fname">Hostname</label-->
+      <!-- <input type="text" class="form-control" id="inputEmail4" placeholder="Port" required="required"> -->
+      {{ form.s_database|as_crispy_field }}
+    </div>
+    <div class="col-md-6">
+      <!--label for="lname">Port</label-->
+      <!-- <input type="text" class="form-control" id="inputPassword4" placeholder="Port" required="required"> -->
+      {{ form.d_database|as_crispy_field }}
+    </div>
+  </div>
+     <div class="form-row">
+    <div class="col-md-6">
+      <!--label for="fname">Hostname</label-->
+      <!-- <input type="text" class="form-control" id="inputEmail4" placeholder="Username" required="required"> -->
+      {{ form.s_username|as_crispy_field }}
+    </div>
+    <div class="col-md-6">
+      <!--label for="lname">Port</label-->
+      <!-- <input type="text" class="form-control" id="inputPassword4" placeholder="Username" required="required"> -->
+      {{ form.d_username|as_crispy_field }}
+    </div>
+  </div>
+   <div class="form-row">
+    <div class="col-md-6">
+      <!--label for="fname">Hostname</label-->
+      <!-- <input type="Password" class="form-control" id="inputEmail4" placeholder="Password" required="required"> -->
+      {{ form.s_password|as_crispy_field }}
+    </div>
+    <div class="col-md-6">
+      <!--label for="lname">Port</label-->
+      <!-- <input type="Password" class="form-control" id="inputPassword4" placeholder="Password" required="required"> -->
+      {{ form.d_password|as_crispy_field }}
+    </div>
+  </div>
+  <div class="offset-md-5 col-md-4">
+    All Fields are mandatory
+    <br>
+  <div class="offset-md-1 col-md-2"><br>
+  <button type="submit" class="btn btn-success">Sync</button></div></div>
+  </div>
+  Welcome {{ user.username }}
+{% endif %}
+{% endblock %}
+</body>
+</html>
+
+
+
+
+<!-- <html>
+<form action="" method="post">
+  {% csrf_token %}
+  {{ form }}
+  <input type="submit" value="Submit">
+</form>
+</html> -->

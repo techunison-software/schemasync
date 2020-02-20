@@ -1,0 +1,110 @@
+{% extends  'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block main %}
+{% if user.is_authenticated %}
+<div class="card">
+<div class="card-body">
+<h4 class="card-title">Welcome {{ user.username }}</h4>
+
+<form method="post">
+{% csrf_token %}
+<input type="hidden" name="next" value="{{ next }}">
+
+{{ form|crispy }}
+
+<a href="{% url 'logout' %}"><button type="button" class="btn btn-primary btn-block">Log Out</button></a>
+</form>
+</div>
+</div>
+{% endif %}
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% extends  'base.html' %}
+{% load crispy_forms_tags %}
+{% block main %}
+{% if user.is_authenticated %}
+<br><br>
+	<div class="form-row">
+		<div class="col-6"><b><h4>Source Connection String</h4></b></div>
+      	<div class="col-6"><b><h4>Destination Connection String</h4></b></div>
+	</div><hr>
+	<div class="form-row">
+		<div class="col-6"><b>Database Details</b></div>
+      	<div class="col-6"><b>Database Details</b></div>
+	</div>
+<br>
+
+<form action="sync" method="GET">
+	 <div class="form-row">
+    <div class="form-group col-md-6">
+      <!--label for="fname">Hostname</label-->
+      <input type="text" class="form-control" id="inputEmail4" placeholder="Localhost" required="required">
+    </div>
+    <div class="form-group col-md-6">
+      <!--label for="lname">Port</label-->
+      <input type="text" class="form-control" id="inputPassword4" placeholder="Hostname" required="required">
+    </div>
+  </div>
+   <div class="form-row">
+    <div class="form-group col-md-6">
+      <!--label for="fname">Hostname</label-->
+      <input type="text" class="form-control" id="inputEmail4" placeholder="Testing" required="required">
+    </div>
+    <div class="form-group col-md-6">
+      <!--label for="lname">Port</label-->
+      <input type="text" class="form-control" id="inputPassword4" placeholder="Database Name" required="required">
+    </div>
+  </div>
+     <div class="form-row">
+    <div class="form-group col-md-6">
+      <!--label for="fname">Hostname</label-->
+      <input type="text" class="form-control" id="inputEmail4" placeholder="Root" required="required">
+    </div>
+    <div class="form-group col-md-6">
+      <!--label for="lname">Port</label-->
+      <input type="text" class="form-control" id="inputPassword4" placeholder="Username" required="required">
+    </div>
+  </div>
+   <div class="form-row">
+    <div class="form-group col-md-6">
+      <!--label for="fname">Hostname</label-->
+      <input type="Password" class="form-control" id="inputEmail4" placeholder="Password" required="required">
+    </div>
+    <div class="form-group col-md-6">
+      <!--label for="lname">Port</label-->
+      <input type="Password" class="form-control" id="inputPassword4" placeholder="Password" required="required">
+    </div>
+  </div>
+  <div class="offset-md-5 col-md-4">
+    All Fields are mandatory
+    <br>
+  <div class="offset-md-1 col-md-2"><br>
+  <button type="submit" class="btn btn-success">Sync</button></div></div>
+  </div>
+  Welcome {{ user.username }}
+{% endif %}
+{% endblock %}
+</body>
+</html>
