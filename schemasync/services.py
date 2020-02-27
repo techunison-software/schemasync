@@ -6,7 +6,6 @@ class DatabaseServices():
     def validateFormDetails(self,form,status):
         try:
             dbServices=DatabaseServices()
-            # status=[]
             sourcedb=DatabaseModel(self,form.cleaned_data['s_hostname'], form.cleaned_data['s_port'], form.cleaned_data['s_database'], 
                             form.cleaned_data['s_username'], form.cleaned_data['s_password'])
             status.append("Checking source database connectivity")
@@ -20,14 +19,9 @@ class DatabaseServices():
                 raise(Exception)
             else:
                 dbServices.saveDBAdapter(sourcedb,status)
-                # returnResult.append(sourcedbconnection)
-                # returnResult.append(form.cleaned_data['s_database'])
                 dbServices.saveDBAdapter(destinationdb,status)
-                # returnResult.append(destinationdbconnection)
-                # returnResult.append(form.cleaned_data['d_database'])
                 return status,sourcedbconnection,destinationdbconnection,form.cleaned_data['s_database'],form.cleaned_data['d_database']
         except Exception as e: 
-            print(e)
             status.append("Error while validating database credentials with error message {}".format(e))
     def saveDBAdapter(self,db,status):
         try:
@@ -64,17 +58,15 @@ class DatabaseServices():
         dbCursor.execute("select table_name from information_schema.tables WHERE table_schema='{}".format(dbName)+"' AND table_type='BASE TABLE'")
         tables=dbCursor.fetchall()
         return tables
-    def c(self,dbConnection,dbName,destinationTables):
+    def getDatabaseColumnList(self,dbConnection,dbName,destinationTables):
         dbCursor=dbConnection.cursor()
         tableString=""
         destinationTablesArray=[]
         for table in destinationTables:
             destinationTablesArray.extend(table)
-        # print("73",destinationTablesArray)
         for table in destinationTablesArray:
             tableString="'"+table+"',"+tableString
-        tableString=tableString[:-1]
-        # print ("tableString",tableString)        
+        tableString=tableString[:-1]       
         dbCursor.execute("select table_name,column_name,COLUMN_TYPE,IS_NULLABLE from information_schema.columns WHERE table_schema='{}".format(dbName)+"' AND TABLE_NAME IN ({}".format(tableString)+")")
         column=dbCursor.fetchall()
         names=[]
@@ -92,10 +84,7 @@ class QueryGenerator:
             destinationTableArray.extend(table)
         createTableArray = [ createTableArray for createTableArray in sourceTableArray if not createTableArray in destinationTableArray ]
         dropTableArray = [ dropTableArray for dropTableArray in destinationTableArray if not dropTableArray in sourceTableArray ]
-        # createTableArray = set(sourceTableArray) - set(destinationTableArray)
-        # dropTableArray = set(destinationTableArray) - set(sourceTableArray)
         resultArray = [createTableArray,dropTableArray]
-        # print("resultArray",resultArray)
         return resultArray 
     def create_gen(self,sourcedbconnection,destinationdbconnection,destinationdb,createTables,status):
         try:
@@ -103,7 +92,6 @@ class QueryGenerator:
             destinationdbcursor=destinationdbconnection.cursor()
             createstatements=[]
             createTableArray=[]
-            print("createtables",createTables)
             for table in createTables:
                 sourcedbcursor.execute("show create table "+table)
                 createquery=sourcedbcursor.fetchall()
@@ -112,20 +100,14 @@ class QueryGenerator:
                     createstatements.append(query[1])
             basetables=[statement for statement in createstatements if 'REFERENCES ' not in statement]
             referencetables=[statement for statement in createstatements if 'REFERENCES ' in statement]
-            print("referencetables",referencetables)
             createorder = [0] * len(referencetables)
-            # print("createorder",createorder)
             for referencetable in referencetables:
                 for table in createTableArray:
-                    if table!=referencetable:
-                        if table in referencetable:
-                            print(table,referencetable)
-                            position=createTableArray.index(table)-1
-                            print("position",position)
-            if len(createorder)>1:
+                    if table in referencetable:
+                        position=createTableArray.index(table)
                 createorder[position]=referencetable
+            if len(createorder)>1:
                 createorder.pop(0)
-            # print("createorder",createorder)
             basetables.extend(createorder)
             for statement in basetables:
                 status.append("Executing Query : \n"+statement)
@@ -134,11 +116,9 @@ class QueryGenerator:
                 status.append("Created Table '"+destinationdb+"'.'"+table+"'")
                 status.append("Executed Query : \n"+statement)
         except Exception as e:
-            print("133",e)
             status.append(e)
     def drop_gen(self,destinationdbconnection,destinationdb,dropTables,status,index):
         destinationdbcursor=destinationdbconnection.cursor()
-        # print("DropTable",dropTables)
         try:
             while len(dropTables)!=0:
                 destinationdbcursor.execute("Drop Table "+destinationdb+"."+dropTables[index])
@@ -148,7 +128,6 @@ class QueryGenerator:
                 dropTables.remove(dropTables[index])
                 ++index
         except Exception as e:
-            print(e)
             ++index
             self.drop_gen(destinationdbconnection,destinationdb,dropTables,status,index)
         finally:
@@ -156,44 +135,22 @@ class QueryGenerator:
                 self.drop_gen(destinationdbconnection,destinationdb,dropTables,status,0)
             return status
     
-    def get_new_columns(self,sourceColumn,destinationColumn):
+    def get_new_columns(self,sourceColumn,destinationColumn,destinationColumnNames,status):
         try:
             sourceColumnArray=[]
             destinationColumnArray=[]
             createColumnIndex=[]
-            # i=0
-            # print("getnewcolumns",sourceColumn)
-            # for column in sourceColumn:
-            #     print("126 column",column[1])
-            #     print("127 sourcecolumn",sourceColumnArray[i][0])
-            #     sourceColumnArray[i][0]=column[0]
-            #     print("129 sourcecolumn",sourceColumnArray[i][0])
-            #     sourceColumnArray[i][1]=column[1]
-            #     sourceColumnArray[i][2]=column[2]
-            #     i+=1
-            # print("test")
-            # print("sourcecolumn",sourceColumnArray[0][0])
-            # i=0
-            # for column in destinationColumn:
-            #     destinationColumnArray.extend(column)
-            # createColumnArray = [ createColumnArray for createColumnArray in sourceColumnArray if not createColumnArray in destinationColumnArray ]
-            # dropColumnArray = [ dropColumnArray for dropColumnArray in destinationColumnArray if not dropColumnArray in sourceColumnArray ]
-            # resultColumnArray = [createColumnArray,dropColumnArray]
-            # print("resultColumnArray",resultColumnArray)
-            # return resultColumnArray
-            createColumnArray = [ createColumnArray for createColumnArray in sourceColumn if createColumnArray not in destinationColumn ]
+            createColumnArray = [ createColumnArray for createColumnArray in sourceColumn if createColumnArray not in destinationColumn  ]
             dropColumnArray = [ dropColumnArray for dropColumnArray in destinationColumn if dropColumnArray not in sourceColumn ]
+            dropColumnArray = [ dropColumnArray for dropColumnArray in dropColumnArray if dropColumnArray[1] not in destinationColumnNames ]
             for column in createColumnArray:
                 createColumnIndex.append(sourceColumn.index(column))
             resultColumnArray = [createColumnArray,dropColumnArray,createColumnIndex]
-            
-            print("resultColumnArray",resultColumnArray)
             return resultColumnArray
         except Exception as e:
-            print("e",e)
-            
+            status.append("get_new_columns : "+e)
         
-    def alter_gen(self,destinationdbconnection,destinationdb,createColumns,dropColumns,sourceColumn,createColumnIndex,status):
+    def alter_gen(self,destinationdbconnection,destinationdb,createColumns,dropColumns,sourceColumn,destinationColumnNames,createColumnIndex,status):
         try:
             destinationdbcursor=destinationdbconnection.cursor()
             i=0
@@ -202,14 +159,15 @@ class QueryGenerator:
                     statement="alter table {}".format(createColumn[0]) +" add column {}".format(createColumn[1]) +" {}".format(createColumn[2])+" NULL AFTER {}".format(sourceColumn[createColumnIndex[i]-1][1])+""
                 else:
                     statement="alter table {}".format(createColumn[0]) +" add column {}".format(createColumn[1]) +" {}".format(createColumn[2])+" NOT NULL AFTER {}".format(sourceColumn[createColumnIndex[i]-1][1])+""
+                if(createColumn[1] in destinationColumnNames):
+                    statement="alter table {}".format(createColumn[0]) +" change column {}".format(createColumn[1])+" {}".format(createColumn[1]) +" {}".format(createColumn[2])+" NULL AFTER {}".format(sourceColumn[createColumnIndex[i]-1][1])+""
                 destinationdbcursor.execute(statement)
                 destinationdbconnection.commit()
                 status.append("Added column '{}".format(createColumn[1])+"' in '"+destinationdb+"'.'{}".format(createColumn[0])+"'")
                 status.append("Executed Query : \n"+statement)
                 i=i+1
-                print("206 dropColumns",dropColumns)
         except Exception as e:
-            print(e)
+            status.append("alter_gen"+e)
         try:
             for dropColumn in dropColumns:
                 statement="alter table {}".format(dropColumn[0]) +" drop column {}".format(dropColumn[1])
@@ -217,9 +175,10 @@ class QueryGenerator:
                 destinationdbconnection.commit()
                 status.append("Dropped column '{}".format(dropColumn[1])+"' in '"+destinationdb+"'.'{}".format(dropColumn[0])+"'")
                 status.append("Executed Query : \n"+statement)
-            #for query1 in alterquery:        
         except Exception as e:
-            print(e)
+            status.append("alter_gen : "+e)
+        finally:
+            return status
 
 class PageServices:
     def init(self,form):
@@ -235,9 +194,9 @@ class PageServices:
             return status
     def processRequest(self,dbServices,queryGen,form,status):
         try:
+            error=False
             returnResult=dbServices.validateFormDetails(form,status)
             if(len(returnResult)<3):
-                # print("returnResult less than 3")
                 return returnResult[0]
             status=returnResult[0]
             sourcedbconnection=returnResult[1]
@@ -246,35 +205,32 @@ class PageServices:
             destinationdb=returnResult[4]
             
             sourceTables=dbServices.getDatabaseTableList(sourcedbconnection,sourcedb)
-            # sourceTables=returnResult[0]
             destinationTables=dbServices.getDatabaseTableList(destinationdbconnection,destinationdb)
-            # print("sourceTables",sourceTables)
-            # print("destinationTables",destinationTables)
             returnResult=queryGen.get_new_tables(sourceTables,destinationTables)
             createTables=returnResult[0]
             dropTables=returnResult[1]
-            print("225",returnResult)
             queryGen.create_gen(sourcedbconnection,destinationdbconnection,destinationdb,createTables,status)
+            
             sourceTables=dbServices.getDatabaseTableList(sourcedbconnection,sourcedb)
             destinationTables=dbServices.getDatabaseTableList(destinationdbconnection,destinationdb)
-            # queryGen.drop_gen(destinationdbconnection,destinationdb,dropTables,status,0)
-            # for table in dropTables:
-            #     queryGen.drop_gen(sourcedbconnection,destinationdbconnection,table,0)
             sourceColumn=dbServices.getDatabaseColumnList(sourcedbconnection,sourcedb,destinationTables)
+            sourceColumnNames=sourceColumn[1]
+            sourceColumn=sourceColumn[0]
             destinationColumn=dbServices.getDatabaseColumnList(destinationdbconnection,destinationdb,destinationTables)
-            print("sourcecolumn",sourceColumn)
-            print("destinationcolumn",destinationColumn)
-            returnResult1=queryGen.get_new_columns(sourceColumn,destinationColumn)
+            destinationColumnNames=destinationColumn[1]
+            destinationColumn=destinationColumn[0]
+            returnResult1=queryGen.get_new_columns(sourceColumn,destinationColumn,destinationColumnNames,status)
             createColumns=returnResult1[0]
             dropColumns=returnResult1[1]
             createColumnIndex=returnResult1[2]
-            print("237",returnResult1)
-            queryGen.alter_gen(destinationdbconnection,destinationdb,createColumns,dropColumns,sourceColumn,createColumnIndex,status)
-            status.append("All the Tables are synced")
+            queryGen.alter_gen(destinationdbconnection,destinationdb,createColumns,dropColumns,sourceColumn,destinationColumnNames,createColumnIndex,status)
         except Exception as e:
-            # print(e)
             status.append(e)
-            return status
+            error=True
         finally:
+            if error==True:
+                status.append("Error while Syncing Tables please check the log for more details")
+            else:
+                status.append("All the Tables are synced")
             return status
         
