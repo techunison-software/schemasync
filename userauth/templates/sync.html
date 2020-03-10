@@ -2,11 +2,9 @@
 {% load crispy_forms_tags %}
 {% block main %}
 {% if user.is_authenticated %}
-	<div class="row">
-		<div class="col-md-12">
-			<div class="label label-primary text-wrap text-center">
-				<h4><b>Process Log</b></h4>
-			</div>
+	<div class="col-md-12">
+		<div class="label label-primary text-wrap text-center">
+			<h4><b>Process Log</b></h4>
 		</div>
 	</div>
 <div class="offset-md-1 col-md-10">
@@ -16,10 +14,8 @@
 {% endfor %}
 </textarea><br>
 </div>
-<div class="row">
-	<div class="offset-md-5 col-md-1 pull-right">
-		<a href="/schemasync/"><button type="button" class="btn btn-success pull-right">Done</button></a>	
-	</div>
+<div class="offset-md-5 col-md-1 pull-right">
+	<a href="/schemasync/"><button type="button" class="btn btn-success pull-right">Done</button></a>	
 </div>
 {% endif %}
 {% endblock %}

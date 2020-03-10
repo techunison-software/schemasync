@@ -105,9 +105,13 @@ class QueryGenerator:
                 for table in createTableArray:
                     if table in referencetable:
                         position=createTableArray.index(table)
-                createorder[position]=referencetable
-            if len(createorder)>1:
-                createorder.pop(0)
+                print("position",position,len(createorder))
+                if position>len(createorder)-1:
+                    createorder.append(referencetable)
+                else:
+                    createorder[position]=referencetable
+            # if len(createorder)>1:
+            #     createorder.pop(0)
             basetables.extend(createorder)
             for statement in basetables:
                 status.append("Executing Query : \n"+statement)
